@@ -1,10 +1,12 @@
 import java.util.*;
+import java.util.logging.Logger; // Thêm import cho logging
 
 public class DieRoll {
     private int ndice;
     private int nsides;
     private int bonus;
     private static Random rnd;
+    private static final Logger LOGGER = Logger.getLogger(DieRoll.class.getName()); // Khởi tạo Logger
 
     static {
         rnd = new Random();
@@ -25,11 +27,16 @@ public class DieRoll {
     }
 
     public RollResult makeRoll() {
+        // Thêm logging và thu thập kết quả
         RollResult result = new RollResult(bonus);
+        List<Integer> rolls = new ArrayList<>(); // Lưu trữ kết quả để log
         for (int i = 0; i < ndice; i++) {
             int roll = rnd.nextInt(nsides) + 1;
             result.addResult(roll);
+            rolls.add(roll); // Thu thập kết quả để log
         }
+        // Log kết quả các lần roll
+        LOGGER.info(String.format("Rolled %dd%d+%d: %s", ndice, nsides, bonus, rolls));
         return result;
     }
 
