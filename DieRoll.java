@@ -11,11 +11,12 @@ public class DieRoll {
     }
 
     public DieRoll(int ndice, int nsides, int bonus) {
+        // Cải thiện thông báo lỗi với chi tiết hơn
         if (ndice <= 0) {
-            throw new IllegalArgumentException("Số xúc xắc phải > 0");
+            throw new IllegalArgumentException("Number of dice must be greater than 0, got: " + ndice);
         }
         if (nsides <= 0) {
-            throw new IllegalArgumentException("Số mặt xúc xắc phải > 0");
+            throw new IllegalArgumentException("Number of sides must be greater than 0, got: " + nsides);
         }
 
         this.ndice = ndice;
@@ -24,7 +25,6 @@ public class DieRoll {
     }
 
     public RollResult makeRoll() {
-        // Refactor: Tối ưu tên biến cho rõ ràng
         RollResult result = new RollResult(bonus);
         for (int i = 0; i < ndice; i++) {
             int roll = rnd.nextInt(nsides) + 1;
@@ -35,13 +35,11 @@ public class DieRoll {
 
     @Override
     public String toString() {
-        // Refactor: Sử dụng StringBuilder để tối ưu chuỗi
         StringBuilder ans = new StringBuilder();
         ans.append(ndice).append("d").append(nsides);
-        if (bonus > 0) {
-            ans.append("+").append(bonus);
-        } else if (bonus < 0) {
-            ans.append(bonus);
+        // Kiểm tra bonus khác 0 để tránh thêm dấu không cần thiết
+        if (bonus != 0) {
+            ans.append(bonus > 0 ? "+" : "").append(bonus);
         }
         return ans.toString();
     }
