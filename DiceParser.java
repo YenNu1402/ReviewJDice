@@ -1,5 +1,59 @@
 import java.util.*;
 
+class DieRoll {
+    int ndice, dsides, bonus;
+
+    public DieRoll(int ndice, int dsides, int bonus) {
+        this.ndice = ndice;
+        this.dsides = dsides;
+        this.bonus = bonus;
+    }
+
+    public int makeRoll() {
+        Random rand = new Random();
+        int total = bonus;
+        System.out.println("Rolling " + ndice + "d" + dsides + (bonus != 0 ? (bonus > 0 ? "+" : "") + bonus : ""));
+
+        for (int i = 1; i <= ndice; i++) {
+            int roll = rand.nextInt(dsides) + 1;
+            System.out.println("  Die " + i + ": " + roll);
+            total += roll;
+        }
+
+        System.out.println("  Bonus: " + bonus + " → Total: " + total);
+        return total;
+    }
+
+    public String toString() {
+        return ndice + "d" + dsides + (bonus != 0 ? (bonus > 0 ? "+" : "") + bonus : "");
+    }
+}
+
+class DiceSum extends DieRoll {
+    DieRoll d1, d2;
+
+    public DiceSum(DieRoll d1, DieRoll d2) {
+        super(0, 0, 0);
+        this.d1 = d1;
+        this.d2 = d2;
+    }
+
+    @Override
+    public int makeRoll() {
+        System.out.println("Rolling combined: " + d1 + " & " + d2);
+        int total1 = d1.makeRoll();
+        int total2 = d2.makeRoll();
+        int combined = total1 + total2;
+        System.out.println("  Sum: " + total1 + " + " + total2 + " = " + combined);
+        return combined;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + d1 + " & " + d2 + ")";
+    }
+}
+
 public class DiceParser {
 
     private static class StringStream {
@@ -11,7 +65,11 @@ public class DiceParser {
 
         private void munchWhiteSpace() {
             int index = 0;
-            while (index < buff.length() && Character.isWhitespace(buff.charAt(index))) {
+            char curr;
+            while (index < buff.length()) {
+                curr = buff.charAt(index);
+                if (!Character.isWhitespace(curr))
+                    break;
                 index++;
             }
             buff = buff.delete(0, index);
@@ -27,12 +85,15 @@ public class DiceParser {
         }
 
         public Integer readInt() {
-            munchWhiteSpace();
             int index = 0;
-            while (index < buff.length() && Character.isDigit(buff.charAt(index))) {
+            char curr;
+            munchWhiteSpace();
+            while (index < buff.length()) {
+                curr = buff.charAt(index);
+                if (!Character.isDigit(curr))
+                    break;
                 index++;
             }
-            if (index == 0) return null;
             try {
                 Integer ans = Integer.parseInt(buff.substring(0, index));
                 buff = buff.delete(0, index);
@@ -47,13 +108,15 @@ public class DiceParser {
             StringStream state = save();
             if (checkAndEat("+")) {
                 Integer ans = readInt();
-                if (ans != null) return ans;
+                if (ans != null)
+                    return ans;
                 restore(state);
                 return null;
             }
             if (checkAndEat("-")) {
                 Integer ans = readInt();
-                if (ans != null) return -ans;
+                if (ans != null)
+                    return -ans;
                 restore(state);
                 return null;
             }
@@ -82,17 +145,19 @@ public class DiceParser {
         }
     }
 
-    // Main parser function
-    public static List<DieRoll> parseRoll(String s) {
-        StringStream ss = new StringStream(s.toLowerCase(Locale.ROOT));
-        List<DieRoll> v = parseRollInner(ss, new ArrayList<>());
-        if (ss.isEmpty()) return v;
+    public static Vector<DieRoll> parseRoll(String s) {
+        StringStream ss = new StringStream(s.toLowerCase());
+        Vector<DieRoll> v = parseRollInner(ss, new Vector<DieRoll>());
+        if (ss.isEmpty())
+            return v;
         return null;
     }
 
-    private static List<DieRoll> parseRollInner(StringStream ss, List<DieRoll> v) {
-        List<DieRoll> r = parseXDice(ss);
-        if (r == null) return null;
+    private static Vector<DieRoll> parseRollInner(StringStream ss, Vector<DieRoll> v) {
+        Vector<DieRoll> r = parseXDice(ss);
+        if (r == null) {
+            return null;
+        }
         v.addAll(r);
         if (ss.checkAndEat(";")) {
             return parseRollInner(ss, v);
@@ -100,20 +165,25 @@ public class DiceParser {
         return v;
     }
 
-    private static List<DieRoll> parseXDice(StringStream ss) {
+    private static Vector<DieRoll> parseXDice(StringStream ss) {
         StringStream saved = ss.save();
         Integer x = ss.getInt();
-        int num = 1;
-        if (x != null) {
+        int num;
+        if (x == null) {
+            num = 1;
+        } else {
             if (ss.checkAndEat("x")) {
                 num = x;
             } else {
+                num = 1;
                 ss.restore(saved);
             }
         }
         DieRoll dr = parseDice(ss);
-        if (dr == null) return null;
-        List<DieRoll> ans = new ArrayList<>();
+        if (dr == null) {
+            return null;
+        }
+        Vector<DieRoll> ans = new Vector<DieRoll>();
         for (int i = 0; i < num; i++) {
             ans.add(dr);
         }
@@ -126,18 +196,29 @@ public class DiceParser {
 
     private static DieRoll parseDiceInner(StringStream ss) {
         Integer num = ss.getInt();
-        int ndice = (num == null) ? 1 : num;
-        if (!ss.checkAndEat("d")) return null;
-
-        Integer dsides = ss.getInt();
-        if (dsides == null) return null;
-
-        Integer bonus = ss.readSgnInt();
-        return new DieRoll(ndice, dsides, (bonus == null) ? 0 : bonus);
+        int dsides;
+        int ndice;
+        if (num == null) {
+            ndice = 1;
+        } else {
+            ndice = num;
+        }
+        if (ss.checkAndEat("d")) {
+            num = ss.getInt();
+            if (num == null)
+                return null;
+            dsides = num;
+        } else {
+            return null;
+        }
+        num = ss.readSgnInt();
+        int bonus = (num == null) ? 0 : num;
+        return new DieRoll(ndice, dsides, bonus);
     }
 
     private static DieRoll parseDTail(DieRoll r1, StringStream ss) {
-        if (r1 == null) return null;
+        if (r1 == null)
+            return null;
         if (ss.checkAndEat("&")) {
             DieRoll d2 = parseDice(ss);
             return parseDTail(new DiceSum(r1, d2), ss);
@@ -147,13 +228,15 @@ public class DiceParser {
     }
 
     private static void test(String s) {
-        List<DieRoll> v = parseRoll(s);
-        if (v == null) {
+        Vector<DieRoll> v = parseRoll(s);
+        if (v == null)
             System.out.println("Failure: " + s);
-        } else {
-            System.out.println("Results for \"" + s + "\":");
+        else {
+            System.out.println("Results for " + s + ":");
             for (DieRoll dr : v) {
-                System.out.println(dr + ": " + dr.makeRoll());
+                System.out.print(dr);
+                System.out.print(": ");
+                System.out.println(dr.makeRoll());
             }
         }
     }
@@ -169,50 +252,5 @@ public class DiceParser {
         test("4d6 + xyzzy");
         test("hi");
         test("4d4d4");
-    }
-}
-
-// DieRoll class
-class DieRoll {
-    int ndice, dsides, bonus;
-
-    public DieRoll(int ndice, int dsides, int bonus) {
-        this.ndice = ndice;
-        this.dsides = dsides;
-        this.bonus = bonus;
-    }
-
-    public int makeRoll() {
-        Random rand = new Random();
-        int total = bonus;
-        for (int i = 0; i < ndice; i++) {
-            total += rand.nextInt(dsides) + 1;
-        }
-        return total;
-    }
-
-    public String toString() {
-        return ndice + "d" + dsides + (bonus != 0 ? (bonus > 0 ? "+" : "") + bonus : "");
-    }
-}
-
-// DiceSum class
-class DiceSum extends DieRoll {
-    DieRoll d1, d2;
-
-    public DiceSum(DieRoll d1, DieRoll d2) {
-        super(0, 0, 0);
-        this.d1 = d1;
-        this.d2 = d2;
-    }
-
-    @Override
-    public int makeRoll() {
-        return d1.makeRoll() + d2.makeRoll();
-    }
-
-    @Override
-    public String toString() {
-        return "(" + d1 + " & " + d2 + ")";
     }
 }
