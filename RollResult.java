@@ -1,60 +1,51 @@
 import java.util.*;
-/*
-JDice: Java Dice Rolling Program
-Copyright (C) 2006 Andrew D. Hilton  (adhilton@cis.upenn.edu)
 
+public class RollResult {
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+    private int total;
+    private int modifier;
+    private Vector<Integer> rolls;
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
- */
-
-
-public class RollResult 
-    int total;
-    int modifier;
-    Vector<Integer> rolls
-    private RollResult(int total, 
-		       int modifier,
-		       Vector<Integer> rolls {
-	this.total=total;
-	this.modifier=modifier;
-	thisrolls=rolls;
+    private RollResult(int total, int modifier, Vector<Integer> rolls) {
+        this.total = total;
+        this.modifier = modifier;
+        this.rolls = rolls;
     }
+
     public RollResult(int bonus) {
-	this.total=bonus;
-	this.modifier=bonus;
-	rolls=new Vector<Integer>();
+        this.total = bonus;
+        this.modifier = bonus;
+        rolls = new Vector<>();
     }
-//    public void addResult(int res){
-	total+=res;
-	rolls.add(res);
+
+    // Thêm logging để theo dõi kết quả thêm vào
+    public void addResult(int res) {
+        total += res;
+        rolls.add(res);
+        System.out.println("[LOG] Added roll: " + res + ", new total: " + total);
     }
+
+    // Refactor để dùng biến newTotal, tránh nhầm lẫn với this.total
     public RollResult andThen(RollResult r2) {
-	int total=this.total+r2.total;
-	Vector<Integer> rolls=new Vector<Integer>();
-	rolls.addAll(this.rolls);
-	rolls.addAll(r2.rolls);
-	return new RollResult(total,
-			      this.modifier+r2.modifier,
-			      rolls);
+        int newTotal = this.total + r2.total;
+        int newModifier = this.modifier + r2.modifier;
+
+        Vector<Integer> combinedRolls = new Vector<>();
+        combinedRolls.addAll(this.rolls);
+        combinedRolls.addAll(r2.rolls);
+
+        System.out.println("[LOG] Merged rolls: " + combinedRolls);
+        System.out.println("[LOG] New total: " + newTotal + ", New modifier: " + newModifier);
+
+        return new RollResult(newTotal, newModifier, combinedRolls);
     }
+
     public String toString() {
-	return total +"  <= " +rolls.toString()+ 
-	    (modifier>0?("+"+modifier):
-	     modifier<0?modifier:"");
+        StringBuilder sb = new StringBuilder();
+        sb.append(total).append(" <= ").append(rolls);
+        if (modifier != 0) {
+            sb.append(" (modifier: ").append(modifier).append(")");
+        }
+        return sb.toString();
     }
-
-
-
+}
