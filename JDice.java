@@ -3,7 +3,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /*
 JDice: Java Dice Rolling Program
 Copyright (C) 2006 Andrew D. Hilton
@@ -11,13 +12,15 @@ Copyright (C) 2006 Andrew D. Hilton
 This program is free software...
 
  */
+
 public class JDice {
+    public static final Logger LOGGER = Logger.getLogger(JDice.class.getName());
     static final String CLEAR = "Clear";
     static final String ROLL = "Roll Selection";
 
     static void showError(String s) {
         JOptionPane.showConfirmDialog(null, s, "Error", JOptionPane.ERROR_MESSAGE);
-        // Đã loại bỏ logging nâng cao, chỉ hiện dialog
+        LOGGER.log(Level.WARNING, "Error displayed: " + s); // Ghi log khi có lỗi
     }
 
     private static class JDiceListener implements ActionListener {
@@ -47,10 +50,13 @@ public class JDice {
                 if (arr.length >= 2) {
                     name += arr[arr.length - 2];
                 }
+                LOGGER.log(Level.INFO, "Rolling from combo input: " + s); // Ghi log hành động ROLL
                 doRoll(name, arr[arr.length - 1]);
             } else if (e.getActionCommand().equals(CLEAR)) {
+                LOGGER.log(Level.INFO, "User clicked CLEAR"); // Ghi log khi Clear
                 doClear();
             } else {
+                LOGGER.log(Level.INFO, "Rolling via button: " + e.getActionCommand()); // Log nút Roll riêng
                 doRoll(null, e.getActionCommand());
             }
         }
@@ -102,8 +108,8 @@ public class JDice {
                     v.add(s);
                 }
             } catch (IOException ioe) {
-                ioe.printStackTrace(); // Logging đơn giản thông qua console
-                System.err.println("Could not read input file: " + args[0]);
+                ioe.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Could not read input file: " + args[0], ioe);
             }
         }
 
@@ -112,8 +118,8 @@ public class JDice {
         c.setLayout(new BorderLayout());
 
         JList<String> jl = new JList<>();
-        JScrollPane scrollPane = new JScrollPane(jl); // Vẫn giữ UI cải tiến
-        c.add(scrollPane, BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(jl); // Bọc JList trong JScrollPane
+        c.add(scrollPane, BorderLayout.CENTER);       // Giúp hiển thị đẹp khi nhiều dòng
 
         JComboBox<String> jcb = new JComboBox<>(v);
         jcb.setEditable(true);
@@ -137,5 +143,7 @@ public class JDice {
         jf.setSize(450, 500);
         jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jf.setVisible(true);
+
+        LOGGER.log(Level.INFO, "JDice GUI started."); // Log khi chương trình khởi động
     }
 }
