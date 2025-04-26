@@ -2,17 +2,21 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.Vector;
+import java.util.logging.Logger;
 import javax.swing.*;
 
-/** 
- * Refactor:
- * Sửa lỗi đánh máy và lỗi cú pháp.
+/**
+ * 
+ * Refactor + Thêm Logging:
+ * Sửa lỗi đánh máy và cú pháp.
  * Cải thiện cấu trúc mã nguồn cho dễ đọc và dễ bảo trì.
+ * Thêm chức năng ghi log các sự kiện chính (Roll, Clear) bằng java.util.logging.
  * 
  */
-public class JDiceRefactor {
+public class JDice {
     static final String CLEAR = "Clear";
     static final String ROLL = "Roll Selection";
+    static final Logger logger = Logger.getLogger(JDice.class.getName());
 
     /**
      * Hiển thị hộp thoại báo lỗi cho người dùng.
@@ -45,6 +49,8 @@ public class JDiceRefactor {
 
         /**
          * Xử lý các sự kiện nút nhấn và thay đổi lựa chọn.
+         * Ghi log các hành động của người dùng.
+         * 
          * @param e Đối tượng sự kiện được kích hoạt.
          */
         @Override
@@ -63,10 +69,13 @@ public class JDiceRefactor {
                 if (arr.length >= 2)
                     name.append(arr[arr.length - 2]);
                 doRoll(name.toString(), arr[arr.length - 1]);
+                logger.info("Người dùng thực hiện Roll với input: " + s);
             } else if (e.getActionCommand().equals(CLEAR)) {
                 doClear();
+                logger.info("Người dùng thực hiện Clear danh sách.");
             } else {
                 doRoll(null, e.getActionCommand());
+                logger.info("Người dùng thực hiện roll nhanh: " + e.getActionCommand());
             }
         }
 
@@ -118,6 +127,7 @@ public class JDiceRefactor {
 
     /**
      * Hàm main: Tạo giao diện người dùng và chạy chương trình.
+     * 
      * @param args Đối số dòng lệnh, nếu có thể chỉ định file input.
      */
     public static void main(String[] args) {
