@@ -4,9 +4,7 @@ import java.util.logging.Logger;
 /**
  * JDice: Java Dice Rolling Program
  * Refactored and improved version of DiceParser
- *
- * @author Andrew D. Hilton
- * @refactoredBy ChatGPT (2025-04-26)
+ * @modifiedBy Lê Trung Kiên
  */
 public class DiceParser {
 
