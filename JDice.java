@@ -3,32 +3,21 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
-
-
-/*
-JDice: Java Dice Rolling Program
-Copyright (C) 2006 Andrew D. Hilton  (adhilton@cis.upenn.edu)
-
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
- */
+import java.util.logging.Level;
+import java.util.logging.Logger;
 public class JDice {
-
 	static final String CLEAR = "Clear";
 	static final String ROLL = "Roll Selection";
+	/**
+	 * Logger cho lớp JDice.
+	 * 
+	 * Dùng để ghi lại các sự kiện quan trọng trong quá trình hoạt động của chương trình,
+	 * bao gồm: hành động của người dùng (roll dice, clear kết quả), lỗi khi phân tích cú pháp,
+	 * và lỗi đọc file đầu vào.
+	 * 
+	 * Việc sử dụng logging giúp dễ dàng theo dõi, gỡ lỗi và bảo trì hệ thống trong tương lai.
+	 */
+	public static final Logger LOGGER = Logger.getLogger(JDice.class.getName());
 
 	/**
 	 * Hiển thị thông báo lỗi. 
@@ -37,8 +26,8 @@ public class JDice {
 	 */
 	static void showError(String s) {
 		JOptionPane.showConfirmDialog(null, s, "Error", JOptionPane.ERROR_MESSAGE);
+		LOGGER.severe("Error displayed to user: "+s);//Ghi log khi có lỗi
 	}
-
 	/**
 	 * Refactor:
 	 * - Sửa lỗi thiếu dấu chấm (.) giữa this và inputBox. 
@@ -50,7 +39,6 @@ public class JDice {
 	 * - Cấu trúc có một số chỗ dư thừa, tên biến không rõ ràng, và logic phân tích cú pháp bị trùng lặp trong xử lý sự kiên.
 	 */
 	private static class JDiceListener implements ActionListener {
-
 		private Vector<String> resultItems; // Danh sách để hiển thị kết quả cuộn
 		private JList<String> resultList;   // Thành phần GUI để hiển thị kết quả
 		private JComboBox<String> inputComboBox; // Trường nhập liệu cho chuỗi xúc xắc
@@ -93,6 +81,7 @@ public class JDice {
 			resultList.clearSelection();
 			resultItems.clear();
 			resultList.setListData(resultItems);
+			LOGGER.info("User cleared the dice results.");//Ghi log clear
 		}
 
 		/**
@@ -103,6 +92,7 @@ public class JDice {
 			Vector<DieRoll> rolls = DiceParser.parseRoll(diceString);
 			if (rolls == null) {
 				showError("Chuỗi xúc xắc không hợp lệ: " + diceString);
+				LOGGER.warning("Invalid dice string entered: "+diceString);//Ghi log lỗi cú pháp
 				return;
 			}
 
@@ -126,6 +116,8 @@ public class JDice {
 
 			resultList.setListData(resultItems);
 			resultList.setSelectedIndices(selectedIndices);
+
+			LOGGER.info("User rolled the dice with input: "+diceString);//Ghi log roll
 		}
 
 		/**
@@ -156,11 +148,10 @@ public class JDice {
 				while ((s = br.readLine()) != null) {
 					v.add(s);
 				}
+				LOGGER.info("Loaded input file: "+args[0]);//Ghi log file load thành công
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
-				System.err.println("***********\n**********\n");
-				System.err.println("Could not read input file: " + args[0]);
-				System.err.println("***********\n**********\n");
+				LOGGER.severe("Could not read input file: "+args[0]);//Ghi log lỗi đọc file
 			}
 		}      
 		JFrame jf = new JFrame("Dice Roller");
@@ -195,6 +186,7 @@ public class JDice {
 		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		jf.setVisible(true);
 
+		LOGGER.info("JDice application started");//Ghi log khi chương trình bắt đầu chạy
 	}
 
 }
